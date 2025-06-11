@@ -152,6 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--video', type=str, help='Path to the video file to process')
     parser.add_argument('--frames', type=int, default=5, help='Number of frames to extract from video (default: 5)')
     parser.add_argument('--text-prompt', type=str, help='Text prompt for non-video requests')
+    parser.add_argument('--output', type=str, help='Path to output file to save the response text')
     args = parser.parse_args()
 
     # Check if the hostname is resolvable
@@ -199,8 +200,18 @@ if __name__ == "__main__":
             
             # Check if 'response' key exists in the result
             if "response" in result:
+                output_text = result["response"]
                 print("\nVideo description:")
-                print(result["response"])
+                print(output_text)
+                
+                # Save to output file if specified
+                if args.output:
+                    try:
+                        with open(args.output, 'w', encoding='utf-8') as f:
+                            f.write(output_text)
+                        print(f"\nOutput saved to: {args.output}")
+                    except Exception as e:
+                        print(f"Error saving to output file: {e}")
             else:
                 print("API response format is unexpected. Full response:", result)
         
@@ -215,8 +226,18 @@ if __name__ == "__main__":
             
             # Check if 'response' key exists in the result
             if "response" in result:
+                output_text = result["response"]
                 print("\nResponse:")
-                print(result["response"])
+                print(output_text)
+                
+                # Save to output file if specified
+                if args.output:
+                    try:
+                        with open(args.output, 'w', encoding='utf-8') as f:
+                            f.write(output_text)
+                        print(f"\nOutput saved to: {args.output}")
+                    except Exception as e:
+                        print(f"Error saving to output file: {e}")
             else:
                 print("API response format is unexpected. Full response:", result)
         
@@ -225,6 +246,7 @@ if __name__ == "__main__":
             print("No video or text prompt provided. Use --video or --text-prompt to specify input.")
             print("Example: python ollama-client.py --video my_video.mp4")
             print("Example: python ollama-client.py --text-prompt \"What is the capital of France?\"")
+            print("Example: python ollama-client.py --video my_video.mp4 --output result.txt")
             
     except socket.gaierror as e:
         print(f"Error resolving hostname: {hostname}")
