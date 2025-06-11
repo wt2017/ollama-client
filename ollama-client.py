@@ -11,6 +11,17 @@ class OllamaClient:
         elif host.startswith("https://"):
             host = host[8:]
         self.base_url = f"http://{host}:{port}/api"
+    
+    def list_models(self):
+        """List all available models"""
+        url = f"{self.base_url}/tags"
+        response = requests.get(url)
+        print(f"Status code for list_models: {response.status_code}")
+        if response.status_code == 200:
+            return response.json().get("models", [])
+        else:
+            print(f"Error listing models: {response.text}")
+            return []
         
     def generate(self, model: str, prompt: str, stream: bool = False, **kwargs) -> dict:
         """非流式调用"""
@@ -54,9 +65,25 @@ if __name__ == "__main__":
         # 使用示例
         client = OllamaClient(hostname, 8080)
         
+        # 先列出所有可用模型
+        print("Getting available models...")
+        available_models = client.list_models()
+        
+        if not available_models:
+            print("No models available or couldn't retrieve model list.")
+            exit(1)
+            
+        print("Available models:")
+        for model in available_models:
+            print(f"- {model['name']} (tags: {model.get('tags', [])})")
+            
+        # 使用第一个可用的模型
+        model_name = available_models[0]['name']
+        print(f"\nUsing model: {model_name}")
+        
         # 非流式调用
         result = client.generate(
-            model="qwen2.5:7b-instruct",
+            model=model_name,
             prompt="为什么天空是蓝色的?",
             options={"temperature": 0.7}
         )
@@ -69,7 +96,7 @@ if __name__ == "__main__":
         # 流式调用
         print("流式响应:")
         for chunk in client.generate_stream(
-            model="qwen2.5:7b-instruct",
+            model=model_name,
             prompt="请用中文自我介绍"
         ):
             print(chunk, end="", flush=True)
